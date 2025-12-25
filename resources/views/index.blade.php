@@ -276,27 +276,44 @@ $role = $_SESSION['role'];
                         <button class="btn btn-primary" style="width: 100%; justify-content: center;">Update Profil</button>
                     </div>
                     <div class="card table-card">
-                        <div class="card-header-actions">
-                            <h3>Daftar Pengguna Aktif</h3>
-                            <label for="modal-anggota2" class="btn btn-primary"><i class="fas fa-user-plus"></i> Tambah User</label>
-                        </div>
-                        <div class="table-container">
-                            <table>
-                                <thead><tr><th>Avatar</th> <th>NIM</th> <th>Nama Lengkap</th> <th>Status</th> <th>Aksi</th></tr></thead>
-                                <tbody>
-                                    <tr>
-                                        <td><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" class="avatar-table"></td>
-                                        <td>12022045</td> <td><b>Sarah Maharani</b></td>
-                                        <td><span class="badge badge-success">Aktif</span></td>
-                                        <td>
-                                            <button class="btn btn-warning"><i class="fas fa-pen"></i></button>
-                                            <button class="btn btn-danger"><i class="fas fa-trash"></i></button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="card-header-actions">
+                    <h3>Daftar Pengguna Aktif</h3>
+                    <label for="modal-anggota2" class="btn btn-primary"><i class="fas fa-user-plus"></i> Tambah User</label>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Avatar</th>
+                                <th>NIM</th>
+                                <th>Nama Lengkap</th>
+                                <th>Role</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($users as $user)
+                            <tr>
+                                <td>
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ $user->name }}" class="avatar-table">
+                                </td>
+                                <td>{{ $user->nim }}</td>
+                                <td><b>{{ $user->name }}</b></td>
+                                <td>
+                                    <span class="badge {{ $user->role == 'admin' ? 'badge-danger' : 'badge-success' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-warning"><i class="fas fa-pen"></i></button>
+                                    <button class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
                 </div>
             </div>
 
@@ -388,13 +405,43 @@ $role = $_SESSION['role'];
         </div>
     </div>
 
-    <input type="checkbox" id="modal-anggota2" style="display: none;">
+   <input type="checkbox" id="modal-anggota2" style="display: none;">
     <div class="modal-overlay">
         <div class="modal">
-            <div class="modal-header"><h2>Registrasi User</h2><label for="modal-anggota2" class="close-btn"><i class="fas fa-times"></i></label></div>
-            <form>
-                <div class="form-group"><label class="form-label">NIM</label><input type="text" class="form-input"></div>
-                <div class="modal-footer"><label for="modal-anggota2" class="btn btn-cancel">Batal</label><button class="btn btn-primary">Simpan</button></div>
+            <div class="modal-header">
+                <h2>Registrasi User Baru</h2>
+                <label for="modal-anggota2" class="close-btn"><i class="fas fa-times"></i></label>
+            </div>
+            
+            <form action="{{ route('user.store') }}" method="POST">
+                @csrf
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" name="name" class="form-input" placeholder="Masukkan nama..." required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">NIM</label>
+                    <input type="text" name="nim" class="form-input" placeholder="Contoh: 12022001" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-input" placeholder="email@student.telkomuniversity.ac.id" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-input" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-input" style="width: 100%;" required>
+                        <option value="mahasiswa">Mahasiswa</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <label for="modal-anggota2" class="btn btn-cancel">Batal</label>
+                    <button type="submit" class="btn btn-primary">Simpan User</button>
+                </div>
             </form>
         </div>
     </div>
