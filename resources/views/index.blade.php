@@ -351,30 +351,47 @@ $role = $_SESSION['role'];
             
         </div> 
         </div> 
-    <input type="checkbox" id="modal-ketua" style="display: none;">
-    <div class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header"><h2>Tambah Ruangan</h2><label for="modal-ketua" class="close-btn"><i class="fas fa-times"></i></label></div>
-                <form action="proses_tambah_ruangan.php" method="POST">
-                    <div class="form-group">
-                        <label class="form-label">Kode Ruangan</label>
-                        <input type="text" name="kode_ruang" class="form-input" placeholder="R-305" required>
+    <input type="checkbox" id="modal-anggota3" style="display: none;">
+
+        <div class="modal-overlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2>Input Inventaris</h2>
+                    <label for="modal-anggota3" class="close-btn"><i class="fas fa-times"></i></label>
+                </div>
+
+                <form action="{{ route('inventaris.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                        <label class="form-label">Nama Barang</label>
+                        <input type="text" name="nama_barang" class="form-input" placeholder="Contoh: Kursi Kantor" required>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Nama Ruangan</label>
-                        <input type="text" name="nama_ruangan" class="form-input" placeholder="Lab Multimedia" required>
+
+                    <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                        <label class="form-label">Jumlah</label>
+                        <input type="number" name="jumlah" class="form-input" placeholder="0" required>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Kapasitas</label>
-                        <input type="number" name="kapasitas" class="form-input" placeholder="40" required>
+
+                    <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                        <label class="form-label">Kondisi</label>
+                        <select name="kondisi" class="form-input" style="background: white;">
+                            <option value="Baik">Baik</option>
+                            <option value="Rusak">Rusak</option>
+                        </select>
                     </div>
+
+                    <div class="form-group" style="text-align: left; margin-bottom: 15px;">
+                        <label class="form-label">Bukti Foto (Jika Rusak)</label>
+                        <input type="file" name="bukti_foto" class="form-input" style="padding: 5px;">
+                        <small style="color: gray; font-size: 0.8em;">Format: JPG, PNG (Max 2MB)</small>
+                    </div>
+
                     <div class="modal-footer">
-                        <label for="modal-ketua" class="btn btn-cancel">Batal</label>
-                        <button type="submit" name="simpan_ruangan" class="btn btn-primary">Simpan</button>
+                        <label for="modal-anggota3" class="btn btn-cancel">Batal</label>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
+            </div>
         </div>
-    </div>
 
     <input type="checkbox" id="modal-anggota1" style="display: none;">
     <div class="modal-overlay">
