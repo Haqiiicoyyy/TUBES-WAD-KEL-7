@@ -155,38 +155,104 @@ $role = $_SESSION['role'];
                         <p>Ajukan peminjaman ruang, kelola jadwal.</p>
                     </div>
                     <div class="user-profile">
-                        <span>Halo, <b>Anggota 1</b></span>
-                        <div class="avatar">A1</div>
+                        <span>Halo, <b>{{ Auth::user()->name }}</b></span>
+                        <div class="avatar">{{ strtoupper(substr(Auth::user()->name,0,2)) }}</div>
                     </div>
                 </div>
+
                 <div class="card">
                     <div class="card-header-actions">
                         <h3>Jadwal & Riwayat Saya</h3>
-                        <label for="modal-anggota1" class="btn btn-primary"><i class="fas fa-calendar-plus"></i> Buat Peminjaman</label>
+                        <!-- Trigger Modal -->
+                        <label for="modal-anggota1" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> Buat Peminjaman
+                        </label>
                     </div>
+
+                    <!-- Tabel Riwayat -->
                     <div class="table-container">
-                        <table>
-                            <thead><tr><th>No</th> <th>Tanggal</th> <th>Jam</th> <th>Ruangan</th> <th>Status</th> <th>Aksi</th></tr></thead>
-                            <tbody>
+                        <table class="table">
+                            <thead>
                                 <tr>
-                                    <td>1</td> <td>25 Okt 2025</td> <td>08:00 - 10:00</td> <td><b>R-301</b></td>
-                                    <td><span class="badge badge-warning">Menunggu</span></td>
-                                    <td>
-                                        <?php if ($role == 'mahasiswa') { ?>
-                                            <button class="btn btn-warning" title="Reschedule"><i class="fas fa-clock"></i></button>
-                                            <button class="btn btn-danger" title="Batal"><i class="fas fa-times"></i></button>
-                                        
-                                        <?php } elseif ($role == 'admin') { ?>
-                                            <a href="proses_acc.php?id=..." class="btn btn-primary" title="Setujui"><i class="fas fa-check"></i></a>
-                                            <a href="proses_tolak.php?id=..." class="btn btn-danger" title="Tolak"><i class="fas fa-times"></i></a>
-                                        <?php } ?>
-                                    </td>
+                                    <th>No</th>
+                                    <th>Tanggal</th>
+                                    <th>Jam</th>
+                                    <th>Ruangan</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($peminjaman as $index => $item)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
+                                        <td>{{ $item->jam }}</td>
+                                        <td><b>{{ $item->ruangan }}</b></td>
+                                        <td>
+                                            @if($item->status == 'menunggu')
+                                                <span class="badge badge-warning">Menunggu</span>
+                                            @elseif($item->status == 'disetujui')
+                                                <span class="badge badge-success">Disetujui</span>
+                                            @else
+                                                <span class="badge badge-danger">Ditolak</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if(Auth::user()->role == 'mahasiswa')
+                                                <button class="btn btn-warning" title="Reschedule"><i class="fas fa-clock"></i></button>
+                                                <button class="btn btn-danger" title="Batal"><i class="fas fa-times"></i></button>
+                                            @elseif(Auth::user()->role == 'admin')
+                                                <a href="{{ route('peminjaman.acc', $item->id) }}" class="btn btn-primary" title="Setujui"><i class="fas fa-check"></i></a>
+                                                <a href="{{ route('peminjaman.tolak', $item->id) }}" class="btn btn-danger" title="Tolak"><i class="fas fa-times"></i></a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+
+<!-- Modal Form Ajukan Peminjaman -->
+<div class="modal" id="modal-anggota1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ route('peminjaman.store') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajukan Peminjaman</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nama</label>
+                        <input type="text" name="nama" class="form-control" value="{{ Auth::user()->name }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal</label>
+                        <input type="date" name="tanggal" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam</label>
+                        <input type="text" name="jam" class="form-control" placeholder="08:00 - 10:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Ruangan</label>
+                        <input type="text" name="ruangan" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Keperluan</label>
+                        <textarea name="keperluan" class="form-control" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Ajukan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
             <div id="section-anggota2" class="section-content">
                 <div class="header">
