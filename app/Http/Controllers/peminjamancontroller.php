@@ -19,7 +19,7 @@ class PeminjamanController extends Controller
             'keperluan'     => 'required',
         ]);
 
-        // Cek Hari Libur (Contoh Logika Sederhana)
+        // Cek Hari Libur 
         $hariLibur = ['2025-12-25', '2025-01-01'];
         if (in_array($request->tanggal, $hariLibur)) {
             return back()->withErrors(['tanggal' => 'Maaf, tanggal tersebut adalah hari libur.']);

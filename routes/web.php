@@ -16,7 +16,7 @@ use App\Http\Controllers\InventarisController;
 Route::get('/', function () {
     // Jika belum login, tampilkan view login
     if (!Auth::check()) {
-        return view('index'); // View index akan mendeteksi @auth dan menampilkan form login
+        return view('index'); // View index bakal ngedeteksi @auth dan menampilkan form login
     }
 
     // Jika SUDAH login, ambil semua data untuk dashboard

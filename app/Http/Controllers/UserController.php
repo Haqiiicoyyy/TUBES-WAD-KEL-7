@@ -23,7 +23,7 @@ class UserController extends Controller
             'name'     => $request->name,
             'nim'      => $request->nim,
             'email'    => $request->email,
-            'password' => Hash::make($request->password), // Enkripsi Password
+            'password' => Hash::make($request->password), // Enkripsi Password NOTE: HARUS HASH TERLEBIH DAHULU
             'role'     => $request->role,
         ]);
 

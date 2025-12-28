@@ -9,7 +9,7 @@ class Ruangan extends Model
 {
     use HasFactory;
 
-    // Beritahu Laravel nama tabel & primary key-nya
+    // Beritahu Laravel nama tabel & primary keynya
     protected $table = 'ruangans';
     protected $primaryKey = 'id_ruangan';
 

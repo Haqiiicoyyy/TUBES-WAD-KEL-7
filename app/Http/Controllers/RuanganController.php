@@ -10,8 +10,8 @@ class RuanganController extends Controller
     // 1. TAMPILKAN HALAMAN DASHBOARD (Method ini dipanggil di route '/')
     public function index()
     {
-        // Sebenarnya logic dashboard sudah ada di routes/web.php
-        // Tapi kita biarkan kosong atau redirect agar tidak error jika dipanggil
+        // Sebenarnya logic dashboard udah ada di routes/web.php
+        // Tapi dibiarin kosong atau redirect agar tidak error jika dipanggil
         return redirect()->route('dashboard');
     }
 
