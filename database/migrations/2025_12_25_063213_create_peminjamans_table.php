@@ -13,13 +13,15 @@ return new class extends Migration
     {
         Schema::create('peminjamans', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_peminjam'); // sementara string dulu
+            $table->string('nama_peminjam');
+            $table->string('ruangan'); // Menyimpan nama ruangan
             $table->date('tanggal');
-            $table->time('jam_mulai');
-            $table->time('jam_selesai');
-            $table->string('status')->default('menunggu','Approved'); // default: menunggu
+            $table->string('jam_mulai'); // Bisa string misal "08:00"
+            $table->string('jam_selesai');
+            $table->text('keperluan');
+            $table->string('status')->default('menunggu'); // menunggu, disetujui, ditolak
             $table->timestamps();
-        });
+    });
     }
 
     /**

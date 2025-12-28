@@ -4,84 +4,55 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Peminjaman;
-use Illuminate\Support\Facades\Auth;
 
 class PeminjamanController extends Controller
 {
-    /**
-     * Menampilkan daftar peminjaman user.
-     */
-    public function index()
-    {
-        // Ambil riwayat peminjaman milik user yang login
-        $peminjaman = Peminjaman::where('nama_peminjam', Auth::user()->name)->get();
-
-        return view('peminjaman.index', compact('peminjaman'));
-    }
-
-    /**
-     * Menyimpan pengajuan peminjaman baru.
-     */
+    // 1. SIMPAN PENGAJUAN PEMINJAMAN
     public function store(Request $request)
     {
-        // Validasi input form
-        $validated = $request->validate([
-            'nama_peminjam' => 'required|string|max:255',
+        $request->validate([
+            'nama_peminjam' => 'required',
+            'ruangan'       => 'required',
             'tanggal'       => 'required|date',
             'jam_mulai'     => 'required',
             'jam_selesai'   => 'required',
-            'keperluan'     => 'required|string|max:500',
-            'ruangan'       => 'required|string|max:100',
+            'keperluan'     => 'required',
         ]);
 
-        $tanggal = $validated['tanggal'];
-
-        // --- Logika cek hari libur (sementara dummy) ---
-        $hariLibur = [
-            '2025-01-01', // Tahun Baru
-            '2025-12-25', // Natal
-        ];
-
-        if (in_array($tanggal, $hariLibur)) {
-            return back()->withErrors([
-                'tanggal' => 'Tanggal yang dipilih adalah hari libur. Silakan pilih tanggal lain.'
-            ]);
+        // Cek Hari Libur (Contoh Logika Sederhana)
+        $hariLibur = ['2025-12-25', '2025-01-01'];
+        if (in_array($request->tanggal, $hariLibur)) {
+            return back()->withErrors(['tanggal' => 'Maaf, tanggal tersebut adalah hari libur.']);
         }
 
-        // Simpan data ke database
         Peminjaman::create([
-            'nama_peminjam' => $validated['nama_peminjam'],
-            'tanggal'       => $validated['tanggal'],
-            'jam_mulai'     => $validated['jam_mulai'],
-            'jam_selesai'   => $validated['jam_selesai'],
-            'status'        => 'menunggu','Approved', // default
+            'nama_peminjam' => $request->nama_peminjam,
+            'ruangan'       => $request->ruangan,
+            'tanggal'       => $request->tanggal,
+            'jam_mulai'     => $request->jam_mulai,
+            'jam_selesai'   => $request->jam_selesai,
+            'keperluan'     => $request->keperluan,
+            'status'        => 'menunggu'
         ]);
 
-        return redirect()->route('peminjaman.index')
-                         ->with('success', 'Pengajuan peminjaman berhasil disimpan.');
+        return redirect()->back()->with('success', 'Pengajuan Peminjaman Berhasil Dikirim!');
     }
 
-    /**
-     * Admin menyetujui peminjaman.
-     */
+    // 2. ACC PEMINJAMAN (ADMIN)
     public function acc($id)
     {
         $peminjaman = Peminjaman::findOrFail($id);
-        $peminjaman->status = 'disetujui';
-        $peminjaman->save();
-
-        return redirect()->route('peminjaman.index')->with('success', 'Peminjaman disetujui.');
+        $peminjaman->update(['status' => 'disetujui']);
+        
+        return redirect()->back()->with('success', 'Peminjaman Disetujui!');
     }
 
-    /**
-     * Admin menolak peminjaman.
-     */
+    // 3. TOLAK PEMINJAMAN (ADMIN)
     public function tolak($id)
     {
         $peminjaman = Peminjaman::findOrFail($id);
-        $peminjaman->status = 'ditolak';
-        $peminjaman->save();
-
-        return redirect()->route('peminjaman.index')->with('error', 'Peminjaman ditolak.');
+        $peminjaman->update(['status' => 'ditolak']);
+        
+        return redirect()->back()->with('success', 'Peminjaman Ditolak!');
     }
 }
