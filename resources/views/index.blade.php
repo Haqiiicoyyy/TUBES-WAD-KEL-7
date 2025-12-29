@@ -128,10 +128,21 @@
                                     <td><img src="https://quickchart.io/qr?text={{ $r->kode_ruang }}&size=80" width="50"></td>
                                     <td>
                                         @if(Auth::user()->role == 'admin')
-                                            <form action="{{ route('ruangan.destroy', $r->id_ruangan) }}" method="POST" onsubmit="return confirm('Hapus ruangan ini?');">
-                                                @csrf @method('DELETE')
-                                                <button class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                            {{-- TOMBOL EDIT (Kuning) --}}
+                                            <button type="button" class="btn btn-warning" 
+                                                onclick="openEditRuangan({{ $r->id_ruangan }}, '{{ addslashes($r->kode_ruang) }}', '{{ addslashes($r->nama_ruangan) }}', '{{ $r->kapasitas }}')">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+                                            
+                                            {{-- TOMBOL HAPUS (Merah) --}}
+                                            <form action="{{ route('ruangan.destroy', $r->id_ruangan) }}" method="POST" style="display:inline;" onsubmit="return confirm('Hapus ruangan ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
                                             </form>
+                                        @else
+                                            {{-- Jika Mahasiswa, tidak ada aksi --}}
+                                            <span class="text-muted">-</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -205,13 +216,41 @@
                         </div>
                         <div class="table-container">
                             <table>
-                                <thead><tr><th>Nama</th><th>NIM</th><th>Role</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>NIM</th>
+                                        <th>Role</th>
+                                        <th>Aksi</th> {{-- TAMBAHAN: Kolom Header Aksi --}}
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     @foreach($users as $u)
                                     <tr>
                                         <td>{{ $u->name }}</td>
                                         <td>{{ $u->nim }}</td>
-                                        <td><span class="badge {{ $u->role == 'admin' ? 'badge-danger' : 'badge-success' }}">{{ $u->role }}</span></td>
+                                        <td>
+                                            <span class="badge {{ $u->role == 'admin' ? 'badge-danger' : 'badge-success' }}">
+                                                {{ $u->role }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {{-- TOMBOL EDIT --}}
+                                            <button type="button" class="btn btn-warning" 
+                                                onclick="openEditUser({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ addslashes($u->email) }}', '{{ $u->role }}')">
+                                                <i class="fas fa-pen"></i>
+                                            </button>
+
+                                            {{-- TOMBOL HAPUS --}}
+                                            {{-- Logika: Tampilkan tombol Hapus HANYA JIKA id user ini BUKAN id saya sendiri --}}
+                                            @if(Auth::id() != $u->id)
+                                                <form action="{{ route('user.destroy', $u->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus user {{ $u->name }}? Data tidak bisa dikembalikan.');">
+                                                    @csrf 
+                                                    @method('DELETE') 
+                                                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                                </form>
+                                            @endif
+                                        </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -248,9 +287,18 @@
                                     <td>{{ $inv->jumlah }}</td>
                                     <td>{{ $inv->kondisi }}</td>
                                     <td>
-                                        <form action="{{ route('inventaris.destroy', $inv->id) }}" method="POST" onsubmit="return confirm('Hapus?');">
-                                            @csrf @method('DELETE')
-                                            <button class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                        {{-- TOMBOL EDIT (Kuning) --}}
+                                        {{-- Onclick ini mengirim data ke Modal Edit --}}
+                                        <button type="button" class="btn btn-warning" 
+                                            onclick="openEditInventaris({{ $inv->id }}, '{{ $inv->nama_barang }}', '{{ $inv->jumlah }}', '{{ $inv->kondisi }}')">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+
+                                        {{-- TOMBOL HAPUS (Merah) --}}
+                                        <form action="{{ route('inventaris.destroy', $inv->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin hapus barang ini?');">
+                                            @csrf 
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
                                         </form>
                                     </td>
                                 </tr>
@@ -347,7 +395,64 @@
         </div>
     </div>
     @endauth
+    
+    {{-- Modal Edit Ruangan --}}
+    <input type="checkbox" id="modal-edit-ruangan" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h2>Edit Ruangan</h2><label for="modal-edit-ruangan" class="close-btn"><i class="fas fa-times"></i></label></div>
+            <form id="form-edit-ruangan" method="POST">
+                @csrf @method('PUT')
+                <div class="form-group"><label>Kode</label><input type="text" name="kode_ruang" id="edit-kode-ruang" class="form-input"></div>
+                <div class="form-group"><label>Nama</label><input type="text" name="nama_ruangan" id="edit-nama-ruangan" class="form-input"></div>
+                <div class="form-group"><label>Kapasitas</label><input type="number" name="kapasitas" id="edit-kapasitas-ruangan" class="form-input"></div>
+                <div class="modal-footer"><button class="btn btn-primary">Update</button></div>
+            </form>
+        </div>
+    </div>
 
+    {{-- Modal Edit User --}}
+    <input type="checkbox" id="modal-edit-user" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h2>Edit User</h2><label for="modal-edit-user" class="close-btn"><i class="fas fa-times"></i></label></div>
+            <form id="form-edit-user" method="POST">
+                @csrf @method('PUT')
+                <div class="form-group"><label>Nama</label><input type="text" name="name" id="edit-nama-user" class="form-input"></div>
+                <div class="form-group"><label>Email</label><input type="email" name="email" id="edit-email-user" class="form-input"></div>
+                <div class="form-group"><label>Role</label>
+                    <select name="role" id="edit-role-user" class="form-input">
+                        <option value="admin">Admin</option>
+                        <option value="mahasiswa">Mahasiswa</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Password Baru (Opsional)</label><input type="password" name="password" class="form-input" placeholder="Isi jika ingin ganti"></div>
+                <div class="modal-footer"><button class="btn btn-primary">Update</button></div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal Edit Inventaris --}}
+    <input type="checkbox" id="modal-edit-inventaris" style="display: none;">
+    <div class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header"><h2>Edit Barang</h2><label for="modal-edit-inventaris" class="close-btn"><i class="fas fa-times"></i></label></div>
+            <form id="form-edit-inventaris" method="POST" enctype="multipart/form-data">
+                @csrf @method('PUT')
+                <div class="form-group"><label>Nama Barang</label><input type="text" name="nama_barang" id="edit-nama-barang" class="form-input"></div>
+                <div class="form-group"><label>Jumlah</label><input type="number" name="jumlah" id="edit-jumlah-barang" class="form-input"></div>
+                <div class="form-group"><label>Kondisi</label>
+                    <select name="kondisi" id="edit-kondisi-barang" class="form-input">
+                        <option value="Baik">Baik</option>
+                        <option value="Rusak">Rusak</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Ganti Foto (Opsional)</label><input type="file" name="bukti_foto" class="form-input"></div>
+                <div class="modal-footer"><button class="btn btn-primary">Update</button></div>
+            </form>
+        </div>
+    </div>
+    
     {{-- Javascript SPA Logic --}}
     <script>
         function showSection(sectionId, element) {
@@ -356,6 +461,33 @@
             
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             if(element) element.classList.add('active');
+        }
+
+        function openEditRuangan(id, kode, nama, kapasitas) {
+            document.getElementById('edit-kode-ruang').value = kode;
+            document.getElementById('edit-nama-ruangan').value = nama;
+            document.getElementById('edit-kapasitas-ruangan').value = kapasitas;
+
+            document.getElementById('form-edit-ruangan').action = "/ruangan/update/" + id;
+            document.getElementById('modal-edit-ruangan').checked = true;
+        }
+
+        function openEditUser(id, nama, email, role) {
+            document.getElementById('edit-nama-user').value = nama;
+            document.getElementById('edit-email-user').value = email;
+            document.getElementById('edit-role-user').value = role;
+
+            document.getElementById('form-edit-user').action = "/user/update/" + id;
+            document.getElementById('modal-edit-user').checked = true;
+        }
+
+        function openEditInventaris(id, nama, jumlah, kondisi) {
+            document.getElementById('edit-nama-barang').value = nama;
+            document.getElementById('edit-jumlah-barang').value = jumlah;
+            document.getElementById('edit-kondisi-barang').value = kondisi;
+
+            document.getElementById('form-edit-inventaris').action = "/inventaris/update/" + id;
+            document.getElementById('modal-edit-inventaris').checked = true;
         }
     </script>
 </body>

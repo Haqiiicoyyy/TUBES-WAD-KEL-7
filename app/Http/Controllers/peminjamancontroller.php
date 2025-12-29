@@ -55,4 +55,24 @@ class PeminjamanController extends Controller
         
         return redirect()->back()->with('success', 'Peminjaman Ditolak!');
     }
+
+    public function update(Request $request, $id)
+    {
+        $pinjam = Peminjaman::findOrFail($id);
+
+        // Hanya boleh edit jika status masih menunggu
+        if($pinjam->status != 'menunggu') {
+            return back()->withErrors(['error' => 'Tidak bisa edit peminjaman yang sudah diproses.']);
+        }
+
+        $pinjam->update([
+            'ruangan' => $request->ruangan,
+            'tanggal' => $request->tanggal,
+            'jam_mulai' => $request->jam_mulai,
+            'jam_selesai' => $request->jam_selesai,
+            'keperluan' => $request->keperluan
+        ]);
+
+        return redirect()->back()->with('success', 'Pengajuan Berhasil Diupdate!');
+    }
 }

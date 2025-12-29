@@ -52,4 +52,40 @@ class InventarisController extends Controller
 
         return redirect()->back()->with('success', 'Barang Inventaris Dihapus!');
     }
+
+    public function update(Request $request, $id)
+    {
+        $barang = Inventaris::findOrFail($id);
+
+        $request->validate([
+            'nama_barang' => 'required',
+            'jumlah' => 'required|integer',
+            'kondisi' => 'required'
+        ]);
+
+        $data = [
+            'nama_barang' => $request->nama_barang,
+            'jumlah' => $request->jumlah,
+            'kondisi' => $request->kondisi
+        ];
+
+        // Cek jika ada foto baru
+        if ($request->hasFile('bukti_foto')) {
+            // Hapus foto lama
+            if ($barang->bukti_foto && Storage::exists('public/bukti/' . $barang->bukti_foto)) {
+                Storage::delete('public/bukti/' . $barang->bukti_foto);
+            }
+            
+            // Upload foto baru
+            $file = $request->file('bukti_foto');
+            $nama_file = time() . "_" . $file->getClientOriginalName();
+            $file->storeAs('public/bukti', $nama_file);
+            
+            $data['bukti_foto'] = $nama_file;
+        }
+
+        $barang->update($data);
+
+        return redirect()->back()->with('success', 'Data Inventaris Berhasil Diupdate!');
+    }
 }

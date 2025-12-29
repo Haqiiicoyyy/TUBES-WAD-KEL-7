@@ -42,4 +42,22 @@ class RuanganController extends Controller
 
         return redirect()->back()->with('success', 'Ruangan Berhasil Dihapus!');
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'kode_ruang' => 'required',
+            'nama_ruangan' => 'required',
+            'kapasitas' => 'required|integer'
+        ]);
+
+        $ruangan = Ruangan::findOrFail($id);
+        $ruangan->update([
+            'kode_ruang' => $request->kode_ruang,
+            'nama_ruangan' => $request->nama_ruangan,
+            'kapasitas' => $request->kapasitas
+        ]);
+
+        return redirect()->back()->with('success', 'Data Ruangan Berhasil Diupdate!');
+    }
 }

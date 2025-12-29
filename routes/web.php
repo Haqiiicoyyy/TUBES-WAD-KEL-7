@@ -65,17 +65,21 @@ Route::middleware('auth')->group(function () {
     // Ketua: Ruangan
     Route::post('/ruangan/store', [RuanganController::class, 'store'])->name('ruangan.store');
     Route::delete('/ruangan/{id}', [RuanganController::class, 'destroy'])->name('ruangan.destroy');
-
+    Route::put('/ruangan/update/{id}', [RuanganController::class, 'update'])->name('ruangan.update');
     // Anggota 1: Peminjaman
     Route::post('/peminjaman/store', [PeminjamanController::class, 'store'])->name('peminjaman.store');
     Route::get('/peminjaman/acc/{id}', [PeminjamanController::class, 'acc'])->name('peminjaman.acc');
     Route::get('/peminjaman/tolak/{id}', [PeminjamanController::class, 'tolak'])->name('peminjaman.tolak');
+    Route::put('/peminjaman/update/{id}', [PeminjamanController::class, 'update'])->name('peminjaman.update');
 
     // Anggota 2: User
     Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
     // Route::put('/profile/update', [UserController::class, 'update'])->name('profile.update'); // Aktifkan jika controller update sudah fix
+    Route::put('/user/update/{id}', [UserController::class, 'update'])->name('user.update');
+    Route::delete('/user/{id}', [UserController::class, 'destroy'])->name('user.destroy');
 
     // Anggota 3: Inventaris
     Route::post('/inventaris/store', [InventarisController::class, 'store'])->name('inventaris.store');
     Route::delete('/inventaris/{id}', [InventarisController::class, 'destroy'])->name('inventaris.destroy');
+    Route::put('/inventaris/update/{id}', [InventarisController::class, 'update'])->name('inventaris.update');
 });

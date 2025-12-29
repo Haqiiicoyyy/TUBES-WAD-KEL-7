@@ -29,4 +29,43 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'User Berhasil Ditambahkan!');
     }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email',
+            // Password nullable (boleh kosong jika tidak ingin diganti)
+            'password' => 'nullable|min:6'
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role' => $request->role // Admin bisa ganti role, user biasa tidak (handle di view)
+        ];
+
+        // Cek apakah password diisi?
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->back()->with('success', 'Data User Berhasil Diupdate!');
+    }
+
+    public function destroy($id)
+    {
+        if (\Illuminate\Support\Facades\Auth::id() == $id) {
+            return redirect()->back()->withErrors(['error' => 'Anda tidak dapat menghapus akun Anda sendiri saat sedang login!']);
+        }
+
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User berhasil dihapus dari sistem.');
+    }
 }
