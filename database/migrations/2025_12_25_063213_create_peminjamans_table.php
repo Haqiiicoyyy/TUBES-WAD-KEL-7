@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('jam_selesai');
             $table->text('keperluan');
             $table->string('status')->default('menunggu'); // menunggu, disetujui, ditolak
+            $table->string('no_hp');
             $table->timestamps();
     });
     }

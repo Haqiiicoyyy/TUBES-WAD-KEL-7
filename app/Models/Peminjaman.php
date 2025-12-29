@@ -14,6 +14,7 @@ class Peminjaman extends Model
         'jam_mulai', 
         'jam_selesai', 
         'keperluan', 
-        'status'
+        'status',
+        'no_hp'
     ];
 }

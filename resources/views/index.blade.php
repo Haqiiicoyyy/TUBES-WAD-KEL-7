@@ -332,6 +332,7 @@
 
     {{-- Modal Anggota 1 (Peminjaman) --}}
     <input type="checkbox" id="modal-anggota1" style="display: none;">
+    
     <div class="modal-overlay">
         <div class="modal">
             <div class="modal-header"><h2>Ajukan Peminjaman</h2><label for="modal-anggota1" class="close-btn"><i class="fas fa-times"></i></label></div>
@@ -344,8 +345,12 @@
                     <div class="form-group half"><label class="form-label">Mulai</label><input type="time" name="jam_mulai" class="form-input" required></div>
                     <div class="form-group half"><label class="form-label">Selesai</label><input type="time" name="jam_selesai" class="form-input" required></div>
                 </div>
+                 <div class="form-group">
+                    <label class="form-label">Nomor HP (WhatsApp)</label>
+                    <input type="number" name="no_hp" class="form-input" placeholder="08xxxxxxxx" required>
+                </div>  
                 <div class="form-group"><label class="form-label">Keperluan</label><textarea name="keperluan" class="form-input" required></textarea></div>
-                <div class="modal-footer"><label for="modal-anggota1" class="btn btn-cancel">Batal</label><button class="btn btn-primary">Ajukan</button></div>
+                <div class="modal-footer"><label for="modal-anggota1" class="btn btn-cancel">Batal</label><button class="btn btn-primary">Ajukan</button></div>  
             </form>
         </div>
     </div>
