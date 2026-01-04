@@ -4,50 +4,38 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Inventaris;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Storage; 
 
 class InventarisController extends Controller
 {
-    // 1. SIMPAN BARANG
     public function store(Request $request)
     {
         $request->validate([
             'nama_barang' => 'required',
             'jumlah'      => 'required|integer',
             'kondisi'     => 'required',
-            'bukti_foto'  => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
+            'bukti_foto'  => 'nullable|image|mimes:jpg,png,jpeg|max:5120', 
         ]);
 
-        $nama_file = null;
+        $url_foto = null;
 
-        // Cek apakah ada upload foto
         if ($request->hasFile('bukti_foto')) {
-            $file = $request->file('bukti_foto');
-            $nama_file = time() . "_" . $file->getClientOriginalName();
-            // Simpan ke folder: storage/app/public/bukti
-            $file->storeAs('public/bukti', $nama_file);
+            $url_foto = $this->uploadKeImgBB($request->file('bukti_foto'));
         }
 
         Inventaris::create([
             'nama_barang' => $request->nama_barang,
             'jumlah'      => $request->jumlah,
             'kondisi'     => $request->kondisi,
-            'bukti_foto'  => $nama_file,
+            'bukti_foto'  => $url_foto, 
         ]);
 
         return redirect()->back()->with('success', 'Barang Inventaris Berhasil Disimpan!');
     }
 
-    // 2. HAPUS BARANG
     public function destroy($id)
     {
         $barang = Inventaris::findOrFail($id);
-
-        // Hapus foto jika ada
-        if ($barang->bukti_foto) {
-            Storage::delete('public/bukti/' . $barang->bukti_foto);
-        }
-
         $barang->delete();
 
         return redirect()->back()->with('success', 'Barang Inventaris Dihapus!');
@@ -69,23 +57,44 @@ class InventarisController extends Controller
             'kondisi' => $request->kondisi
         ];
 
-        // Cek jika ada foto baru
         if ($request->hasFile('bukti_foto')) {
-            // Hapus foto lama
-            if ($barang->bukti_foto && Storage::exists('public/bukti/' . $barang->bukti_foto)) {
-                Storage::delete('public/bukti/' . $barang->bukti_foto);
-            }
-            
-            // Upload foto baru
-            $file = $request->file('bukti_foto');
-            $nama_file = time() . "_" . $file->getClientOriginalName();
-            $file->storeAs('public/bukti', $nama_file);
-            
-            $data['bukti_foto'] = $nama_file;
+            // Upload ke ImgBB
+            $url_baru = $this->uploadKeImgBB($request->file('bukti_foto'));
+            $data['bukti_foto'] = $url_baru;
         }
 
         $barang->update($data);
 
         return redirect()->back()->with('success', 'Data Inventaris Berhasil Diupdate!');
+    }
+
+
+    private function uploadKeImgBB($imageFile)
+    {
+        $apiKey = '8306330a5261756cebbe8c8f3f107bda'; 
+
+        $data = file_get_contents($imageFile->path());
+        $base64 = base64_encode($data);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.imgbb.com/1/upload?key='.$apiKey,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => array(
+                'image' => $base64
+            ),
+        ));
+
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        $result = json_decode($response, true);
+
+        if (isset($result['data']['url'])) {
+            return $result['data']['url'];
+        }
+
+        return null; 
     }
 }

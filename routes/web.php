@@ -82,4 +82,62 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventaris/store', [InventarisController::class, 'store'])->name('inventaris.store');
     Route::delete('/inventaris/{id}', [InventarisController::class, 'destroy'])->name('inventaris.destroy');
     Route::put('/inventaris/update/{id}', [InventarisController::class, 'update'])->name('inventaris.update');
+
+    Route::get('/', function (Illuminate\Http\Request $request) {
+        if (!Auth::check()) {
+            return view('index'); 
+        }
+
+        $user = Auth::user();
+
+        // --- LOGIKA PENCARIAN (SEARCH) ---
+        $ruanganQuery = Ruangan::query();
+        if ($request->has('search_ruang')) {
+            $ruanganQuery->where('nama_ruangan', 'like', '%' . $request->search_ruang . '%')
+                        ->orWhere('kode_ruang', 'like', '%' . $request->search_ruang . '%');
+        }
+        
+        $peminjamanQuery = Peminjaman::query();
+        if ($user->role == 'mahasiswa') {
+            $peminjamanQuery->where('nama_peminjam', $user->name);
+        }
+        if ($request->has('search_pinjam')) {
+            $peminjamanQuery->where(function($q) use ($request) {
+                $q->where('ruangan', 'like', '%' . $request->search_pinjam . '%')
+                ->orWhere('nama_peminjam', 'like', '%' . $request->search_pinjam . '%');
+            });
+        }
+
+        $usersQuery = User::query();
+        if ($request->has('search_user')) {
+            $usersQuery->where('name', 'like', '%' . $request->search_user . '%')
+                    ->orWhere('nim', 'like', '%' . $request->search_user . '%');
+        }
+
+        $inventarisQuery = Inventaris::query();
+        if ($request->has('search_barang')) {
+            $inventarisQuery->where('nama_barang', 'like', '%' . $request->search_barang . '%');
+        }
+
+        $activeTab = 'ketua'; 
+        if ($request->has('search_ruang')) $activeTab = 'ketua';
+        if ($request->has('search_pinjam')) $activeTab = 'anggota1';
+        if ($request->has('search_user')) $activeTab = 'anggota2';
+        if ($request->has('search_barang')) $activeTab = 'anggota3';
+
+        $data = [
+            'ruangan'       => $ruanganQuery->get(),
+            'peminjaman'    => $peminjamanQuery->get(),
+            'users'         => $usersQuery->get(),
+            'inventaris'    => $inventarisQuery->get(),
+            'total_item'    => Inventaris::sum('jumlah'),
+            'kondisi_baik'  => Inventaris::where('kondisi', 'Baik')->sum('jumlah'),
+            'kondisi_rusak' => Inventaris::where('kondisi', 'Rusak')->sum('jumlah'),
+            'active_tab'    => $activeTab, 
+            'request'       => $request,   
+        ];
+
+        return view('index', $data);
+
+    })->name('dashboard');
 });

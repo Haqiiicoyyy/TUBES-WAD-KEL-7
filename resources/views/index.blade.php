@@ -110,6 +110,14 @@
                 <div class="card">
                     <div class="card-header-actions">
                         <h3>Daftar Ruangan</h3>
+                        {{-- FORM SEARCH RUANGAN --}}
+                            <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
+                                <input type="text" name="search_ruang" class="form-input" placeholder="Cari ruangan..." value="{{ $request->search_ruang ?? '' }}" style="width: 200px;">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                                @if($request->has('search_ruang'))
+                                    <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
+                                @endif
+                            </form>
                         @if(Auth::user()->role == 'admin')
                             <label for="modal-ketua" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Ruangan</label>
                         @endif
@@ -165,6 +173,13 @@
                 <div class="card">
                     <div class="card-header-actions">
                         <h3>Riwayat</h3>
+                        <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
+                            <input type="text" name="search_pinjam" class="form-input" placeholder="Cari peminjam/ruang..." value="{{ $request->search_pinjam ?? '' }}" style="width: 200px;">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                            @if($request->has('search_pinjam'))
+                                <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
+                            @endif
+                        </form>
                         <label for="modal-anggota1" class="btn btn-primary"><i class="fas fa-plus"></i> Ajukan</label>
                     </div>
                     <div class="table-container">
@@ -212,6 +227,13 @@
                     <div class="card table-card">
                         <div class="card-header-actions">
                             <h3>Pengguna</h3>
+                            <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
+                                <input type="text" name="search_user" class="form-input" placeholder="Cari Nama/NIM..." value="{{ $request->search_user ?? '' }}" style="width: 200px;">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                                @if($request->has('search_user'))
+                                    <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
+                                @endif
+                            </form>
                             <label for="modal-anggota2" class="btn btn-primary"><i class="fas fa-user-plus"></i></label>
                         </div>
                         <div class="table-container">
@@ -274,6 +296,13 @@
                 <div class="card">
                     <div class="card-header-actions">
                         <h3>Daftar Barang</h3>
+                        <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
+                            <input type="text" name="search_barang" class="form-input" placeholder="Cari barang..." value="{{ $request->search_barang ?? '' }}" style="width: 200px;">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                            @if($request->has('search_barang'))
+                                <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
+                            @endif
+                        </form>
                         <label for="modal-anggota3" class="btn btn-primary"><i class="fas fa-plus"></i></label>
                     </div>
                     <div class="table-container">
@@ -464,9 +493,28 @@
             document.querySelectorAll('.section-content').forEach(sec => sec.classList.remove('active'));
             document.getElementById('section-' + sectionId).classList.add('active');
             
-            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-            if(element) element.classList.add('active');
-        }
+            if(element) {
+                document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+                element.classList.add('active');
+            }
+     }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            let activeTab = "{{ $active_tab ?? 'ketua' }}"; 
+            
+            let menuId = '';
+            if(activeTab === 'ketua') menuId = 0;
+            if(activeTab === 'anggota1') menuId = 1; 
+            if(activeTab === 'anggota2') menuId = 2; 
+            if(activeTab === 'anggota3') menuId = 3; 
+
+            let menuItems = document.querySelectorAll('.sidebar nav .menu-item');
+            
+            if(menuItems[menuId]) {
+                showSection(activeTab, menuItems[menuId]);
+            }
+        });
 
         function openEditRuangan(id, kode, nama, kapasitas) {
             document.getElementById('edit-kode-ruang').value = kode;
