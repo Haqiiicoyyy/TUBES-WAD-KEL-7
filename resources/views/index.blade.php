@@ -149,8 +149,10 @@
                                                 <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
                                             </form>
                                         @else
-                                            {{-- Jika Mahasiswa, tidak ada aksi --}}
-                                            <span class="text-muted">-</span>
+                                            {{-- MAHASISWA: Hanya bisa pilih untuk pinjam --}}
+                                            <label for="modal-anggota1" class="btn btn-primary btn-sm" onclick="document.getElementsByName('ruangan')[0].value='{{ $r->nama_ruangan }}'; showSection('anggota1', document.querySelector('[onclick*=\'anggota1\']'))">
+                                                <i class="fas fa-calendar-plus"></i> Pilih Ruangan
+                                            </label>
                                         @endif
                                     </td>
                                 </tr>
@@ -194,9 +196,14 @@
                                     <td>{{ $p->ruangan }}</td>
                                     <td><span class="badge {{ $p->status == 'disetujui' ? 'badge-success' : ($p->status == 'ditolak' ? 'badge-danger' : 'badge-warning') }}">{{ ucfirst($p->status) }}</span></td>
                                     <td>
-                                        @if(Auth::user()->role == 'admin' && $p->status == 'menunggu')
+                                        @if(Auth::user()->role == 'admin')
+                                            @if($p->status == 'menunggu')
                                             <a href="{{ route('peminjaman.acc', $p->id) }}" class="btn btn-primary btn-sm"><i class="fas fa-check"></i></a>
                                             <a href="{{ route('peminjaman.tolak', $p->id) }}" class="btn btn-danger btn-sm"><i class="fas fa-times"></i></a>
+                                        @endif
+                                        @else
+                                             {{-- MAHASISWA: Hanya bisa melihat status --}}
+                                            <span class="text-muted"><i class="fas fa-lock"></i> No Action</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -207,71 +214,186 @@
                 </div>
             </div>
 
-            {{-- SECTION 3: ANGGOTA 2 (USER) - HANYA ADMIN --}}
-            @if(Auth::user()->role == 'admin')
+            {{-- SECTION 3: PROFIL & RIWAYAT (MAHASISWA) / MANAJEMEN USER (ADMIN) --}}
             <div id="section-anggota2" class="section-content">
                 <div class="header">
-                    <div class="page-title"><h1>Manajemen User</h1><p>Kelola pengguna.</p></div>
-                    <div class="user-profile"><span>Admin</span><div class="avatar">A2</div></div>
+                    <div class="page-title">
+                        <h1>{{ Auth::user()->role == 'admin' ? 'Manajemen User' : 'Profil & Riwayat Peminjaman' }}</h1>
+                        <p>{{ Auth::user()->role == 'admin' ? 'Kelola pengguna sistem.' : 'Informasi akun dan histori aktivitas Anda.' }}</p>
+                    </div>
+                    <div class="user-profile">
+                        <span>Halo, <b>{{ Auth::user()->name }}</b></span>
+                        <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
+                    </div>
                 </div>
+
                 <div class="layout-grid">
-                    {{-- Profil Card --}}
+                    {{-- Sisi Kiri: Kartu Profil --}}
                     <div class="card profile-card">
                         <div class="profile-center">
                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed={{ Auth::user()->name }}" class="avatar-big">
-                            <h4>{{ Auth::user()->name }}</h4>
+                            <h4 style="margin-top: 15px;">{{ Auth::user()->name }}</h4>
                             <p class="text-muted">{{ Auth::user()->nim }}</p>
+                            <span class="badge {{ Auth::user()->role == 'admin' ? 'badge-danger' : 'badge-success' }}" style="margin-top: 10px;">
+                                {{ ucfirst(Auth::user()->role) }}
+                            </span>
+                        </div>
+                        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                        <div style="font-size: 14px;">
+                            <p><strong>Email:</strong> {{ Auth::user()->email }}</p>
+                            <p style="margin-top: 10px;"><strong>Status Akun:</strong> Aktif</p>
                         </div>
                     </div>
-                    {{-- Tabel User --}}
+
+                    {{-- Sisi Kanan: Tabel (Berbeda isi tergantung Role) --}}
                     <div class="card table-card">
-                        <div class="card-header-actions">
-                            <h3>Pengguna</h3>
-                            <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
-                                <input type="text" name="search_user" class="form-input" placeholder="Cari Nama/NIM..." value="{{ $request->search_user ?? '' }}" style="width: 200px;">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
-                                @if($request->has('search_user'))
-                                    <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
-                                @endif
-                            </form>
-                            <label for="modal-anggota2" class="btn btn-primary"><i class="fas fa-user-plus"></i></label>
+                        @if(Auth::user()->role == 'admin')
+                            <div class="card-header-actions">
+                                <h3>Daftar Pengguna</h3>
+                                <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
+                                    <input type="text" name="search_user" class="form-input" placeholder="Cari Nama/NIM..." value="{{ request('search_user') }}" style="width: 200px;">
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                                </form>
+                                <label for="modal-anggota2" class="btn btn-primary"><i class="fas fa-user-plus"></i></label>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr><th>Nama</th><th>NIM</th><th>Role</th><th>Aksi</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($users as $u)
+                                        <tr>
+                                            <td>{{ $u->name }}</td>
+                                            <td>{{ $u->nim }}</td>
+                                            <td><span class="badge {{ $u->role == 'admin' ? 'badge-danger' : 'badge-success' }}">{{ $u->role }}</span></td>
+                                            <td>
+                                                <button class="btn btn-warning" onclick="openEditUser({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ $u->email }}', '{{ $u->role }}')"><i class="fas fa-pen"></i></button>
+                                                @if(Auth::id() != $u->id)
+                                                <form action="{{ route('user.destroy', $u->id) }}" method="POST" style="display:inline;">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                                </form>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="card-header-actions">
+                                <h3>Riwayat Peminjaman Anda</h3>
+                                <span class="text-muted">Total: {{ $peminjaman->count() }} Kegiatan</span>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr><th>Tanggal</th><th>Ruangan</th><th>Status</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($peminjaman as $p)
+                                        <tr>
+                                            <td>{{ date('d M Y', strtotime($p->tanggal)) }}</td>
+                                            <td><b>{{ $p->ruangan }}</b></td>
+                                            <td><span class="badge {{ $p->status == 'disetujui' ? 'badge-success' : 'badge-warning' }}">{{ ucfirst($p->status) }}</span></td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="3" style="text-align:center;">Belum ada riwayat.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- SECTION 4: ANGGOTA 3 (INVENTARIS) --}}
+            <div id="section-anggota3" class="section-content">
+                @if(Auth::user()->role == 'admin')
+                    {{-- TAMPILAN KHUSUS ADMIN --}}
+                    <div class="header">
+                        <div class="page-title">
+                            <h1>Manajemen Inventaris</h1>
+                            <p>Kelola aset dan logistik gedung.</p>
                         </div>
+                        <div class="user-profile">
+                            <span>Halo, <b>Admin</b></span>
+                            <div class="avatar">A3</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="card stat-card">
+                            <div>
+                                <h3>{{ $total_item ?? 0 }}</h3>
+                                <p>Total Item</p>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div>
+                                <h3>{{ $kondisi_baik ?? 0 }}</h3>
+                                <p>Kondisi Baik</p>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div>
+                                <h3>{{ $kondisi_rusak ?? 0 }}</h3>
+                                <p>Kondisi Rusak</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header-actions">
+                            <h3>Daftar Barang</h3>
+                            <div style="display:flex; gap:10px;">
+                                {{-- Form Search Barang --}}
+                                <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
+                                    <input type="text" name="search_barang" class="form-input" placeholder="Cari barang..." value="{{ $request->search_barang ?? '' }}" style="width: 200px;">
+                                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
+                                    @if($request->has('search_barang'))
+                                        <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
+                                    @endif
+                                </form>
+                                <label for="modal-anggota3" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Barang</label>
+                            </div>
+                        </div>
+
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Nama</th>
-                                        <th>NIM</th>
-                                        <th>Role</th>
-                                        <th>Aksi</th> {{-- TAMBAHAN: Kolom Header Aksi --}}
+                                        <th>No</th>
+                                        <th>Nama Barang</th>
+                                        <th>Jumlah</th>
+                                        <th>Kondisi</th>
+                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($users as $u)
+                                    @foreach($inventaris as $idx => $inv)
                                     <tr>
-                                        <td>{{ $u->name }}</td>
-                                        <td>{{ $u->nim }}</td>
+                                        <td>{{ $idx + 1 }}</td>
+                                        <td>{{ $inv->nama_barang }}</td>
+                                        <td>{{ $inv->jumlah }}</td>
                                         <td>
-                                            <span class="badge {{ $u->role == 'admin' ? 'badge-danger' : 'badge-success' }}">
-                                                {{ $u->role }}
+                                            <span class="badge {{ $inv->kondisi == 'Baik' ? 'badge-success' : 'badge-danger' }}">
+                                                {{ $inv->kondisi }}
                                             </span>
                                         </td>
                                         <td>
-                                            {{-- TOMBOL EDIT --}}
                                             <button type="button" class="btn btn-warning" 
-                                                onclick="openEditUser({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ addslashes($u->email) }}', '{{ $u->role }}')">
+                                                onclick="openEditInventaris({{ $inv->id }}, '{{ addslashes($inv->nama_barang) }}', '{{ $inv->jumlah }}', '{{ $inv->kondisi }}')">
                                                 <i class="fas fa-pen"></i>
                                             </button>
 
-                                            {{-- TOMBOL HAPUS --}}
-                                            {{-- Logika: Tampilkan tombol Hapus HANYA JIKA id user ini BUKAN id saya sendiri --}}
-                                            @if(Auth::id() != $u->id)
-                                                <form action="{{ route('user.destroy', $u->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin ingin menghapus user {{ $u->name }}? Data tidak bisa dikembalikan.');">
-                                                    @csrf 
-                                                    @method('DELETE') 
-                                                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
-                                                </form>
-                                            @endif
+                                            <form action="{{ route('inventaris.destroy', $inv->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin hapus barang ini?');">
+                                                @csrf 
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
+                                            </form>
                                         </td>
                                     </tr>
                                     @endforeach
@@ -279,68 +401,20 @@
                             </table>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {{-- SECTION 4: ANGGOTA 3 (INVENTARIS) - HANYA ADMIN --}}
-            <div id="section-anggota3" class="section-content">
-                <div class="header">
-                    <div class="page-title"><h1>Inventaris</h1><p>Kelola aset gedung.</p></div>
-                    <div class="user-profile"><span>Admin</span><div class="avatar">A3</div></div>
-                </div>
-                <div class="stats-grid">
-                    <div class="card stat-card"><div><h3>{{ $total_item ?? 0 }}</h3><p>Total Item</p></div></div>
-                    <div class="card stat-card"><div><h3>{{ $kondisi_baik ?? 0 }}</h3><p>Baik</p></div></div>
-                    <div class="card stat-card"><div><h3>{{ $kondisi_rusak ?? 0 }}</h3><p>Rusak</p></div></div>
-                </div>
-                <div class="card">
-                    <div class="card-header-actions">
-                        <h3>Daftar Barang</h3>
-                        <form action="{{ route('dashboard') }}" method="GET" style="display:flex; gap:10px;">
-                            <input type="text" name="search_barang" class="form-input" placeholder="Cari barang..." value="{{ $request->search_barang ?? '' }}" style="width: 200px;">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i></button>
-                            @if($request->has('search_barang'))
-                                <a href="{{ route('dashboard') }}" class="btn btn-danger"><i class="fas fa-times"></i></a>
-                            @endif
-                        </form>
-                        <label for="modal-anggota3" class="btn btn-primary"><i class="fas fa-plus"></i></label>
+                @else
+                    {{-- TAMPILAN KHUSUS MAHASISWA --}}
+                    <div class="card" style="text-align: center; padding: 80px 20px;">
+                        <div style="margin-bottom: 20px;">
+                            <i class="fas fa-lock" style="font-size: 64px; color: #e5e7eb;"></i>
+                        </div>
+                        <h2 style="font-family: 'Poppins', sans-serif; color: #374151;">Akses Terbatas</h2>
+                        <p style="color: #6b7280; max-width: 400px; margin: 10px auto;">Maaf, halaman Inventaris hanya dapat diakses oleh Administrator untuk keperluan pengelolaan aset.</p>
+                        <button class="btn btn-primary" style="margin-top: 20px;" onclick="showSection('ketua', document.querySelector('.menu-item'))">
+                            Kembali ke Dashboard
+                        </button>
                     </div>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>No</th><th>Barang</th><th>Jumlah</th><th>Kondisi</th><th>Aksi</th></tr></thead>
-                            <tbody>
-                                @foreach($inventaris as $idx => $inv)
-                                <tr>
-                                    <td>{{ $idx + 1 }}</td>
-                                    <td>{{ $inv->nama_barang }}</td>
-                                    <td>{{ $inv->jumlah }}</td>
-                                    <td>{{ $inv->kondisi }}</td>
-                                    <td>
-                                        {{-- TOMBOL EDIT (Kuning) --}}
-                                        {{-- Onclick ini mengirim data ke Modal Edit --}}
-                                        <button type="button" class="btn btn-warning" 
-                                            onclick="openEditInventaris({{ $inv->id }}, '{{ $inv->nama_barang }}', '{{ $inv->jumlah }}', '{{ $inv->kondisi }}')">
-                                            <i class="fas fa-pen"></i>
-                                        </button>
-
-                                        {{-- TOMBOL HAPUS (Merah) --}}
-                                        <form action="{{ route('inventaris.destroy', $inv->id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Yakin hapus barang ini?');">
-                                            @csrf 
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i></button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            @endif
-
-        </div> {{-- End Main Content --}}
-    </div> {{-- End Dashboard View --}}
+                @endif
+            </div> 
 
     {{-- MODALS --}}
     
