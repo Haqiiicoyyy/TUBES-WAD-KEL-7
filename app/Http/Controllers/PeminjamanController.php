@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Peminjaman;
 
-class peminjamancontroller extends Controller
+class PeminjamanController extends Controller
 {
     public function store(Request $request)
     {
